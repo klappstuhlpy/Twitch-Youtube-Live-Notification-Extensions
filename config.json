@@ -1,0 +1,19 @@
+{
+    "twitch": {
+        "client_id": "",
+        "client_secret": "",
+        "channel_id": 0,
+        "watchlist": [
+            "montanablack88"
+        ],
+        "expiry": 0,
+        "bearer_token": ""
+    },
+    "youtube": {
+        "api_key": "",
+        "channel_id": 0,
+        "watchlist": [
+            "PewDiePie"
+        ]
+    }
+}
