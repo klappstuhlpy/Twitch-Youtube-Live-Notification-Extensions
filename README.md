@@ -7,8 +7,8 @@ Those are two "Extensions" written for the discord.py library where the Bot send
 ## Example Folder Hierarchy
 ### This is Important for the part in the Code where to access your "config.json" File.:
 
-YourBotFolder <- Second "parent" folder
-    - cogs  <- First "parent" folder
+<a>YourBotFolder <- Second "parent" folder<a/>
+<p>    - cogs  <- First "parent" folder<p/>
         - twitch.py
         - youtube.py
     - main.py
