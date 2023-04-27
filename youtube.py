@@ -34,6 +34,7 @@ import aiohttp
 import discord
 import json
 
+from discord import HTTPException
 from discord.ext import commands, tasks
 import datetime
 
@@ -42,11 +43,9 @@ from discord.utils import cached_slot_property
 logger = logging.getLogger(__name__)
 
 
-class YouTubeRequestError(Exception):
-    def __init__(self, reason: str, status: int):
-        self.status = status
-        self.reason = reason
-        super().__init__(f"Request returned {status} thrown at: {reason}")
+class YouTubeRequestError(HTTPException):
+    """A subclass Exception for failed YouTube API requests."""
+    pass
 
 
 class config(abc.ABCMeta):
@@ -123,7 +122,7 @@ class YouTubeNotifications(commands.Cog):
             async with self.session.get(BASE_URL.format(endpoint="channels"), params=payload,
                                         headers=self.bearer_headers) as resp:
                 if resp.status != 200:
-                    raise YouTubeRequestError(f'Could not get channel "{name}".', resp.status)
+                    raise YouTubeRequestError(resp, f'Could not get channel "{name}".')
 
                 data = await resp.json()
 
@@ -150,7 +149,7 @@ class YouTubeNotifications(commands.Cog):
             async with self.session.get(BASE_URL.format(endpoint="search"), params=payload,
                                         headers=self.bearer_headers) as resp:
                 if resp.status != 200:
-                    raise YouTubeRequestError(f'Could not get stream for channel "{channel.id}".', resp.status)
+                    raise YouTubeRequestError(resp, f'Could not get stream for channel "{channel.id}".')
 
                 data = await resp.json()
 
