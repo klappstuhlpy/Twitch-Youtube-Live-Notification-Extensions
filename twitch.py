@@ -34,6 +34,7 @@ import aiohttp
 import discord
 import json
 
+from discord import HTTPException
 from discord.ext import commands, tasks
 import datetime
 
@@ -42,11 +43,9 @@ from discord.utils import cached_slot_property
 logger = logging.getLogger(__name__)
 
 
-class TwitchRequestError(Exception):
-    def __init__(self, reason: str, status: int):
-        self.status = status
-        self.reason = reason
-        super().__init__(f"Request returned {status} thrown at: {reason}")
+class TwitchRequestError(HTTPException):
+    """A subclass Exception for failed Twitch API requests."""
+    pass
 
 
 GRANT_URL = "https://id.twitch.tv/oauth2/token"
@@ -146,7 +145,7 @@ class TwitchNotifications(commands.Cog):
     async def _get_bearer_token(self) -> None:
         async with self.session.post(GRANT_URL, params=self.grant_params) as resp:
             if resp.status != 200:
-                raise TwitchRequestError(resp.reason, resp.status)
+                raise TwitchRequestError(resp, resp.reason)
 
             data = await resp.json()
             self._expiry(expiry=(time.time() + (int(data['expires_in']) - 10)))
@@ -158,7 +157,7 @@ class TwitchNotifications(commands.Cog):
         async with self.session.get("https://api.twitch.tv/helix/users", params=payload,
                                     headers=self.bearer_headers) as resp:
             if resp.status != 200:
-                raise TwitchRequestError("Could not get user IDs. Maybe refresh the bearer token?", resp.status)
+                raise TwitchRequestError(resp, "Could not get user IDs. Maybe refresh the bearer token?")
 
             data = await resp.json()
             return [TwitchUser(
@@ -179,7 +178,7 @@ class TwitchNotifications(commands.Cog):
         async with self.session.get("https://api.twitch.tv/helix/streams", params=payload,
                                     headers=self.bearer_headers) as resp:
             if resp.status != 200:
-                raise TwitchRequestError("Could not get streams", resp.status)
+                raise TwitchRequestError(resp, "Could not get streams")
 
             data = await resp.json()
             return [
