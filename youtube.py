@@ -50,28 +50,7 @@ class YouTubeRequestError(Exception):
 
 
 class config(abc.ABCMeta):
-    """A class for getting and setting the config.json file.
-
-    Example JSON File
-    -----------------
-    {
-        "youtube": {
-            "api_key": "",
-            "channel_id": 0,
-            "watchlist": [
-                "PewDiePie"
-            ]
-        }
-    }
-
-    Example Folder Hierarchy
-    ------------------------
-    YourBotFolder <- Second "parent" folder
-        - cogs  <- First "parent" folder
-            - youtube.py  <- Current File
-        - main.py
-        - config.json
-    """
+    """A class for getting and setting the config.json file."""
 
     path = Path(__file__).parent.parent / "config.json"
 
