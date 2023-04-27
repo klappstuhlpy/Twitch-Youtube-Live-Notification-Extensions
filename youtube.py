@@ -28,24 +28,35 @@ import abc
 import logging
 import random
 from pathlib import Path
-from typing import List, Dict, Any, NamedTuple, Optional
+from typing import List, Dict, Any, NamedTuple, Optional, TypeVar
 
 import aiohttp
 import discord
 import json
 
-from discord import HTTPException
+from discord import DiscordException
 from discord.ext import commands, tasks
 import datetime
 
 from discord.utils import cached_slot_property
 
 logger = logging.getLogger(__name__)
+_RT = TypeVar("_RT", bound="ClientResponse")
 
 
-class YouTubeRequestError(HTTPException):
+class YouTubeRequestError(DiscordException):
     """A subclass Exception for failed YouTube API requests."""
-    pass
+
+    def __init__(self, response: _RT, data: Dict[str, Any], message: Optional[str]):
+        self.response: _RT = response
+        self.message: str = message
+
+        type = data["error"]["errors"][0]["reason"]
+
+        self.type: str = type or "unknown"
+
+        fmt = '{0.status} {0.reason} (type: {1}): {2}'
+        super().__init__(fmt.format(self.response, self.type, self.message))
 
 
 class config(abc.ABCMeta):
@@ -122,7 +133,7 @@ class YouTubeNotifications(commands.Cog):
             async with self.session.get(BASE_URL.format(endpoint="channels"), params=payload,
                                         headers=self.bearer_headers) as resp:
                 if resp.status != 200:
-                    raise YouTubeRequestError(resp, f'Could not get channel "{name}".')
+                    raise YouTubeRequestError(resp, await resp.json(), f'Could not get channel "{name}".')
 
                 data = await resp.json()
 
@@ -149,7 +160,7 @@ class YouTubeNotifications(commands.Cog):
             async with self.session.get(BASE_URL.format(endpoint="search"), params=payload,
                                         headers=self.bearer_headers) as resp:
                 if resp.status != 200:
-                    raise YouTubeRequestError(resp, f'Could not get stream for channel "{channel.id}".')
+                    raise YouTubeRequestError(resp, await resp.json(), f'Could not get stream for channel "{channel.id}".')
 
                 data = await resp.json()
 
@@ -190,7 +201,7 @@ class YouTubeNotifications(commands.Cog):
 
         return cache
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=15)
     async def refresh_notify_check(self):
         await self.bot.wait_until_ready()
         channel = self.bot.get_channel(config.get()["youtube"]["channel_id"])
