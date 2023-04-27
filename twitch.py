@@ -55,29 +55,6 @@ TWITCH_ICON_URL = "https://media.discordapp.net/attachments/1062074624935993427/
 
 class config(abc.ABCMeta):
     """A class for getting and setting the config.json file.
-
-    Example JSON File
-    -----------------
-    {
-        "twitch": {
-            "client_id": "",
-            "client_secret": "",
-            "channel_id": 0,
-            "watchlist": [
-                "montanablack88"
-            ],
-            "expiry": 0,
-            "bearer_token": ""
-        }
-    }
-
-    Example Folder Hierarchy
-    ------------------------
-    YourBotFolder <- Second "parent" folder
-        - cogs  <- First "parent" folder
-            - twitch.py  <- Current File
-        - main.py
-        - config.json
     """
 
     path = Path(__file__).parent.parent / "config.json"
