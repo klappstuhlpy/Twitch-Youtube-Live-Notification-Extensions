@@ -4,9 +4,9 @@ Those are two "Extensions" written for the discord.py library where the Bot send
 
 # Setup
 
-# Example Folder Hierarchy
-## This is Important for the part in the Code where to access your "config.json" File.
-------------------------
+## Example Folder Hierarchy
+### This is Important for the part in the Code where to access your "config.json" File.:
+
 YourBotFolder <- Second "parent" folder
     - cogs  <- First "parent" folder
         - twitch.py
