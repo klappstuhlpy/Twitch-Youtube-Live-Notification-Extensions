@@ -54,8 +54,7 @@ TWITCH_ICON_URL = "https://media.discordapp.net/attachments/1062074624935993427/
 
 
 class config(abc.ABCMeta):
-    """A class for getting and setting the config.json file.
-    """
+    """A class for getting and setting the config.json file."""
 
     path = Path(__file__).parent.parent / "config.json"
 
