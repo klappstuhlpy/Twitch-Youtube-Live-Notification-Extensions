@@ -25,3 +25,8 @@ To get a `Client ID` and a `Client Secret`, you need to got to https://dev.twitc
 
 ### YouTube
 In order use the `Youtube Data v3 API` you have to generate an API Key in the Google Cloud Protal at https://console.cloud.google.com/.
+
+# Important:
+Do `NOT` set the Task Loop checking from YouTube Notifications lower than `15 Minutes` because of the Rate Limits of YouTube.
+More Information over at: 
+https://developers.google.com/youtube/v3/determine_quota_cost
