@@ -1,5 +1,5 @@
 ### Twitch-Youtube-Live-Notification-Extension
-Those are two "Extensions" written for the discord.py library where the Bot sends automatically a Message wheter a User is currently Live Streaming.
+Those are two "Extensions" written for the discord.py library where the Bot automatically sends a Message as soon as a user/channel entered in the config file goes live.
 
 
 # Setup
@@ -18,6 +18,7 @@ YourBotFolder <- Second "parent" folder
 
 
 # API Keys?
+To authorize the HTTP Requests that need to be done in order to Access the Twitch and YouTube API, you need to generate some Authorization Keys.
 
 ### Twitch
 To get a `Client ID` and a `Client Secret`, you need to got to https://dev.twitch.tv/console/extensions and create a new Extension.
