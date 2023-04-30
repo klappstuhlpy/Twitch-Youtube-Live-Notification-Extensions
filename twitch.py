@@ -52,7 +52,7 @@ GRANT_URL = "https://id.twitch.tv/oauth2/token"
 TWITCH_ICON_URL = "https://media.discordapp.net/attachments/1062074624935993427/1101142491450835036/5968819.png"
 
 
-class config(abc.ABCMeta):
+class config:
     """A class for getting and setting the config.json file."""
 
     path = Path(__file__).parent.parent / "config.json"
@@ -233,12 +233,12 @@ class TwitchNotifications(commands.Cog):
             started_at = datetime.datetime.fromisoformat(stream.started_at).astimezone(datetime.timezone.utc)
 
             embed = discord.Embed(title=stream.title, url=stream.user.url, color=random.randint(0, 0xFFFFFF))
-            embed.set_author(name=f"{stream.user.display_name} ist jetzt Live auf Twitch!", url=stream.user.url,
+            embed.set_author(name=f"{stream.user.display_name} is now Live on Twitch!", url=stream.user.url,
                              icon_url=TWITCH_ICON_URL)
             embed.set_thumbnail(url=stream.user.profile_image_url)
-            embed.add_field(name="Gestartet", value=discord.utils.format_dt(started_at, style="R"),
+            embed.add_field(name="Started", value=discord.utils.format_dt(started_at, style="R"),
                             inline=False)
-            embed.add_field(name="Spiel", value=stream.game_name or 'Unbekannt', inline=True)
+            embed.add_field(name="Game", value=stream.game_name or 'Unknown', inline=True)
             embed.add_field(name="Viewers", value=f"{stream.viewer_count:,}", inline=True)
             if tags := stream.tags:
                 embed.add_field(name="Tags", value=", ".join(tags), inline=False)
