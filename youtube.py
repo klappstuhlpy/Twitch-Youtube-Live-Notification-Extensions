@@ -41,14 +41,13 @@ import datetime
 from discord.utils import cached_slot_property
 
 logger = logging.getLogger(__name__)
-_RT = TypeVar("_RT", bound="ClientResponse")
 
 
 class YouTubeRequestError(DiscordException):
     """A subclass Exception for failed YouTube API requests."""
 
-    def __init__(self, response: _RT, data: Dict[str, Any], message: Optional[str]):
-        self.response: _RT = response
+    def __init__(self, response: aiohttp.ClientResponse, data: Dict[str, Any], message: Optional[str]):
+        self.response: aiohttp.ClientResponse = response
         self.message: str = message
 
         type = data["error"]["errors"][0]["reason"]
