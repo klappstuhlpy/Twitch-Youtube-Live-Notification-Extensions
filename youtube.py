@@ -59,7 +59,7 @@ class YouTubeRequestError(DiscordException):
         super().__init__(fmt.format(self.response, self.type, self.message))
 
 
-class config(abc.ABCMeta):
+class config:
     """A class for getting and setting the config.json file."""
 
     path = Path(__file__).parent.parent / "config.json"
@@ -160,7 +160,8 @@ class YouTubeNotifications(commands.Cog):
             async with self.session.get(BASE_URL.format(endpoint="search"), params=payload,
                                         headers=self.bearer_headers) as resp:
                 if resp.status != 200:
-                    raise YouTubeRequestError(resp, await resp.json(), f'Could not get stream for channel "{channel.id}".')
+                    raise YouTubeRequestError(resp, await resp.json(),
+                                              f'Could not get stream for channel "{channel.id}".')
 
                 data = await resp.json()
 
@@ -172,8 +173,8 @@ class YouTubeNotifications(commands.Cog):
                     YouTubeStream(
                         channel=channel,
                         video_id=stream["id"]["videoId"],
-                        started_at=datetime.datetime.fromisoformat(stream["snippet"]["publishedAt"])
-                        .astimezone(datetime.timezone.utc),
+                        started_at=datetime.datetime.fromisoformat(stream["snippet"]["publishedAt"]).astimezone(
+                            datetime.timezone.utc),
                         title=stream["snippet"]["title"],
                         description=stream["snippet"]["description"],
                         thumbnail_url=stream["snippet"]["thumbnails"]["high"]["url"]
@@ -187,11 +188,11 @@ class YouTubeNotifications(commands.Cog):
         streams = await self.get_streams(await self.get_channels(wl))
 
         cache = []
-        
+
         for stream in self.running_streams:
             if stream not in streams:
                 self.running_streams.remove(stream)
-        
+
         for stream in streams:
             if stream in self.running_streams:
                 continue
@@ -213,10 +214,10 @@ class YouTubeNotifications(commands.Cog):
             embed = discord.Embed(title=stream.title,
                                   description=stream.description,
                                   url=stream.url, color=random.randint(0, 0xFFFFFF))
-            embed.set_author(name=f"{stream.channel.name} ist jetzt Live auf YouTube!", url=stream.channel.url,
+            embed.set_author(name=f"{stream.channel.name} is now Live on YouTube!", url=stream.channel.url,
                              icon_url=YOUTUBE_ICON_URL)
             embed.set_thumbnail(url=stream.channel.icon_url)
-            embed.add_field(name="Gestartet", value=discord.utils.format_dt(stream.started_at, style="R"),
+            embed.add_field(name="Started", value=discord.utils.format_dt(stream.started_at, style="R"),
                             inline=False)
             embed.set_image(url=stream.thumbnail_url)
 
