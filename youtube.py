@@ -24,21 +24,18 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import annotations
-import abc
 import logging
-import random
 from pathlib import Path
-from typing import List, Dict, Any, NamedTuple, Optional, TypeVar
+from typing import List, Dict, Any, NamedTuple, Optional
 
 import aiohttp
 import discord
 import json
 
+from dateutil.parser import parse
 from discord import DiscordException
 from discord.ext import commands, tasks
 import datetime
-
-from discord.utils import cached_slot_property
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +47,12 @@ class YouTubeRequestError(DiscordException):
         self.response: aiohttp.ClientResponse = response
         self.message: str = message
 
-        type = data["error"]["errors"][0]["reason"]
+        reason = data["error"]["errors"][0]["reason"]
 
-        self.type: str = type or "unknown"
+        self.reason: str = reason or "unknown"
 
-        fmt = '{0.status} {0.reason} (type: {1}): {2}'
-        super().__init__(fmt.format(self.response, self.type, self.message))
+        fmt = '{0.status} {0.reason} (reason: {1}): {2}'
+        super().__init__(fmt.format(self.response, self.reason, self.message))
 
 
 class config:
@@ -112,11 +109,11 @@ class YouTubeNotifications(commands.Cog):
             await self.session.close()
         self.refresh_notify_check.cancel()
 
-    @cached_slot_property(name="_cs_api_key")
+    @property
     def api_key(self) -> str:
         return config.get()["youtube"].get("api_key", None)
 
-    @cached_slot_property(name="_cs_bearer_headers")
+    @property
     def bearer_headers(self) -> dict:
         return {'Accept': 'application/json'}
 
@@ -131,10 +128,16 @@ class YouTubeNotifications(commands.Cog):
             payload = self.payload(forUsername=name, part="id,snippet")
             async with self.session.get(BASE_URL.format(endpoint="channels"), params=payload,
                                         headers=self.bearer_headers) as resp:
-                if resp.status != 200:
-                    raise YouTubeRequestError(resp, await resp.json(), f'Could not get channel "{name}".')
-
                 data = await resp.json()
+
+                if resp.status != 200:
+                    match data["error"]["errors"][0]["reason"]:
+                        case "quotaExceeded":
+                            logger.debug(
+                                "YouTube API quota exceeded.")  # Just debug this error. (Request Limit of YouTube API)
+                        case _:
+                            raise YouTubeRequestError(resp, await resp.json(), f'Could not get channel "{name}".')
+                    return
 
                 if not data.get("items", None):
                     continue
@@ -158,11 +161,15 @@ class YouTubeNotifications(commands.Cog):
                                    maxResults=1, order="date")
             async with self.session.get(BASE_URL.format(endpoint="search"), params=payload,
                                         headers=self.bearer_headers) as resp:
-                if resp.status != 200:
-                    raise YouTubeRequestError(resp, await resp.json(),
-                                              f'Could not get stream for channel "{channel.id}".')
-
                 data = await resp.json()
+
+                if resp.status != 200:
+                    match data["error"]["errors"][0]["reason"]:
+                        case "quotaExceeded":
+                            logger.debug("YouTube API quota exceeded.")  # Just debug this error. (Request Limit of YouTube API)
+                        case _:
+                            raise YouTubeRequestError(resp, data, f'Could not get stream for channel "{channel.id}".')
+                    return
 
                 if not data.get("items", None):
                     continue
@@ -172,8 +179,7 @@ class YouTubeNotifications(commands.Cog):
                     YouTubeStream(
                         channel=channel,
                         video_id=stream["id"]["videoId"],
-                        started_at=datetime.datetime.fromisoformat(stream["snippet"]["publishedAt"]).astimezone(
-                            datetime.timezone.utc),
+                        started_at=parse(stream["snippet"]["publishedAt"]).astimezone(datetime.timezone.utc),
                         title=stream["snippet"]["title"],
                         description=stream["snippet"]["description"],
                         thumbnail_url=stream["snippet"]["thumbnails"]["high"]["url"]
@@ -184,7 +190,8 @@ class YouTubeNotifications(commands.Cog):
 
     async def get_notifications(self) -> List[YouTubeStream]:
         wl = config.get()["youtube"]["watchlist"]
-        streams = await self.get_streams(await self.get_channels(wl))
+        channels = await self.get_channels(wl)
+        streams = await self.get_streams(channels)
 
         cache = []
 
@@ -201,7 +208,7 @@ class YouTubeNotifications(commands.Cog):
 
         return cache
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(minutes=20)
     async def refresh_notify_check(self):
         await self.bot.wait_until_ready()
         channel = self.bot.get_channel(config.get()["youtube"]["channel_id"])
@@ -210,9 +217,7 @@ class YouTubeNotifications(commands.Cog):
 
         streams = await self.get_notifications()
         for stream in streams:
-            embed = discord.Embed(title=stream.title,
-                                  description=stream.description,
-                                  url=stream.url, color=random.randint(0, 0xFFFFFF))
+            embed = discord.Embed(title=stream.title, url=stream.url, color=0xFF0000)
             embed.set_author(name=f"{stream.channel.name} is now Live on YouTube!", url=stream.channel.url,
                              icon_url=YOUTUBE_ICON_URL)
             embed.set_thumbnail(url=stream.channel.icon_url)
