@@ -232,7 +232,7 @@ class TwitchNotifications(commands.Cog):
         for stream in streams:
             started_at = datetime.datetime.fromisoformat(stream.started_at).astimezone(datetime.timezone.utc)
 
-            embed = discord.Embed(title=stream.title, url=stream.user.url, color=random.randint(0, 0xFFFFFF))
+            embed = discord.Embed(title=stream.title, url=stream.user.url, color=0x6441a5)
             embed.set_author(name=f"{stream.user.display_name} is now Live on Twitch!", url=stream.user.url,
                              icon_url=TWITCH_ICON_URL)
             embed.set_thumbnail(url=stream.user.profile_image_url)
